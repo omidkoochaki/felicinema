@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
 from felicinema.apps.accounts.models import User
-from felicinema.apps.cinema.models import Cinema, CinemaSession
+from felicinema.apps.cinema.models import Cinema, CinemaSession, Movie
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -13,11 +13,19 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
+class MovieCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Movie
+        fields = (
+            'title', 'genre',
+        )
+
+
 class CinemaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cinema
         fields = (
-            'title', 'address',
+            'title', 'address', 'language', 'duration', 'summary'
         )
 
 

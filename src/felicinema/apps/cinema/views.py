@@ -1,5 +1,6 @@
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, get_object_or_404
+from rest_framework.mixins import CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,7 +8,7 @@ from rest_framework.views import APIView
 from felicinema.apps.cinema.models import Cinema, CinemaSession, Seat
 from felicinema.apps.cinema.permissions import IsCinemaOwner
 from felicinema.apps.cinema.serializers import CinemaCreateSerializer, CinemaListSerializer, SessionsListSerializer, \
-    GenerateSeatsSerializer
+    GenerateSeatsSerializer, MovieCreateSerializer
 
 
 class CreateCinemaView(CreateAPIView):
@@ -26,6 +27,11 @@ class CreateCinemaView(CreateAPIView):
         serializer.validated_data.update({'user_id': request.user.id})
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class CreateMovieView(CreateAPIView):
+    permission_classes = (IsCinemaOwner,)
+    serializer_class = MovieCreateSerializer
 
 
 class ListCinemaView(ListAPIView):

@@ -31,18 +31,9 @@ class Movie(models.Model):
         ENGLISH = 'E', 'English'
         OTHER = 'O', 'Other'
 
-    class Translations(models.TextChoices):
-        PERSIAN_SUBTITLE = 'PS', 'Persian Subtitle'
-        ENGLISH_SUBTITLE = 'ES', 'English Subtitle'
-        OTHER_SUBTITLE = 'OS', 'Other Subtitle'
-        PERSIAN_VOICE = 'PV', 'Persian Voice'
-        ENGLISH_VOICE = 'EV', 'English Voice'
-        OTHER_VOICE = 'OV', 'Other Voice'
-
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, unique=True)
     genre = models.CharField(max_length=128)
     language = models.CharField(max_length=2, choices=Language.choices, default=Language.ENGLISH)
-    translation = models.CharField(max_length=2, choices=Translations.choices, default=Translations.PERSIAN_SUBTITLE)
     duration = models.DurationField()
     summary = models.TextField()
     # todo: add poster
@@ -59,10 +50,19 @@ class SessionManager(models.Manager):
 
 
 class CinemaSession(models.Model):
+    class Translations(models.TextChoices):
+        PERSIAN_SUBTITLE = 'PS', 'Persian Subtitle'
+        ENGLISH_SUBTITLE = 'ES', 'English Subtitle'
+        OTHER_SUBTITLE = 'OS', 'Other Subtitle'
+        PERSIAN_VOICE = 'PV', 'Persian Voice'
+        ENGLISH_VOICE = 'EV', 'English Voice'
+        OTHER_VOICE = 'OV', 'Other Voice'
     cinema = models.OneToOneField(Cinema, on_delete=models.CASCADE, related_name='sessions')
     movie = models.OneToOneField(Movie, on_delete=models.CASCADE, related_name='sessions')
     date = models.DateField()
     time = models.TimeField()
+    translation = models.CharField(max_length=2, choices=Translations.choices, default=Translations.PERSIAN_SUBTITLE)
+    description = models.TextField(null=True, blank=True)
 
     objects = SessionManager()
 
