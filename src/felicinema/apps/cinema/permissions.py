@@ -11,3 +11,8 @@ class IsCinemaOwner(IsAuthenticated):
             if request.user.is_cinema_owner and request.user.cinema == Cinema.objects.get(id=cinema_id):
                 return super().has_permission(request, view)
         return False
+
+
+class HasCinema(IsAuthenticated):
+    def has_permission(self, request, view):
+        return request.user.is_cinema_owner

@@ -2,7 +2,15 @@ from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
 from felicinema.apps.accounts.models import User
-from felicinema.apps.cinema.models import Cinema, CinemaSession, Movie
+from felicinema.apps.cinema.models import Cinema, CinemaSession, Movie, Seat
+
+
+class ShowSeatsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Seat
+        fields = (
+            'row', 'seat', 'wheelchair_friendly',
+        )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -17,8 +25,17 @@ class MovieCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = (
-            'title', 'genre',
+            'title', 'genre', 'duration', 'summary',
         )
+
+    def is_valid(self, *, raise_exception=True):
+        return super().is_valid(raise_exception=raise_exception)
+
+    def validate_duration(self, dur):
+        err_msg = 'duration must be a str like: "02:30:00" for a duration of 2 hours and a half.'
+        if len(str(dur)) != 7:
+            raise serializers.ValidationError(err_msg)
+        return dur
 
 
 class CinemaCreateSerializer(serializers.ModelSerializer):
@@ -31,6 +48,7 @@ class CinemaCreateSerializer(serializers.ModelSerializer):
 
 class CinemaListSerializer(serializers.ModelSerializer):
     owner = UserSerializer(source='user')
+    seats = ShowSeatsSerializer(many=True)
 
     class Meta:
         model = Cinema

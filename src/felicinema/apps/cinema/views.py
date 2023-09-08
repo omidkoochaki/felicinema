@@ -1,12 +1,11 @@
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, ListAPIView, get_object_or_404
-from rest_framework.mixins import CreateModelMixin
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from felicinema.apps.cinema.models import Cinema, CinemaSession, Seat
-from felicinema.apps.cinema.permissions import IsCinemaOwner
+from felicinema.apps.cinema.models import Cinema, CinemaSession, Seat, Movie
+from felicinema.apps.cinema.permissions import IsCinemaOwner, HasCinema
 from felicinema.apps.cinema.serializers import CinemaCreateSerializer, CinemaListSerializer, SessionsListSerializer, \
     GenerateSeatsSerializer, MovieCreateSerializer
 
@@ -30,8 +29,27 @@ class CreateCinemaView(CreateAPIView):
 
 
 class CreateMovieView(CreateAPIView):
-    permission_classes = (IsCinemaOwner,)
+    permission_classes = (HasCinema,)
     serializer_class = MovieCreateSerializer
+
+
+class ListMovieView(ListAPIView):
+    serializer_class = MovieCreateSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        movie_id = self.kwargs['movie_id']
+        if movie_id == 'all':
+            query_set = Movie.objects.all()
+        else:
+            query_set = Movie.objects.filter(id=movie_id)
+        return query_set
+
+
+class RetriveCinemaView(RetrieveAPIView):
+    serializer_class = CinemaListSerializer
+    permission_classes = (IsAuthenticated,)
+    queryset = Cinema.objects.all()
 
 
 class ListCinemaView(ListAPIView):
