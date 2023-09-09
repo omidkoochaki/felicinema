@@ -1,7 +1,7 @@
 from django.urls import path
 
 from felicinema.apps.cinema.views import CreateCinemaView, ListCinemaView, ListSessionsView, GenerateSeatsView, \
-    CreateMovieView, ListMovieView, RetriveCinemaView
+    CreateMovieView, ListMovieView, RetriveCinemaView, CreateSessionsView
 
 urlpatterns = [
     path('add/', CreateCinemaView.as_view()),
@@ -11,4 +11,5 @@ urlpatterns = [
     path('all/', ListCinemaView.as_view()),
     path('<int:pk>/', RetriveCinemaView.as_view()),
     path('<int:cinema_id>/sessions/', ListSessionsView.as_view()),
+    path('<int:cinema_id>/sessions/add/', CreateSessionsView.as_view()),
 ]

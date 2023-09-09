@@ -4,10 +4,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from felicinema.apps.cinema.models import Cinema, CinemaSession, Seat, Movie
+from felicinema.apps.cinema.models import Cinema, CinemaSession, Seat, Movie, Ticket
 from felicinema.apps.cinema.permissions import IsCinemaOwner, HasCinema
 from felicinema.apps.cinema.serializers import CinemaCreateSerializer, CinemaListSerializer, SessionsListSerializer, \
-    GenerateSeatsSerializer, MovieCreateSerializer
+    GenerateSeatsSerializer, MovieCreateSerializer, SessionCreateSerializer
 
 
 class CreateCinemaView(CreateAPIView):
@@ -16,13 +16,8 @@ class CreateCinemaView(CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        data = {
-            **request.data,
-            'user_id': request.user.id
-        }
-        serializer = self.serializer_class(data=data)
+        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
-        print('=+' * 30)
         serializer.validated_data.update({'user_id': request.user.id})
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -78,6 +73,29 @@ class ListSessionsView(ListAPIView):
         return query_set
 
 
+class CreateSessionsView(CreateAPIView):
+    permission_classes = (IsCinemaOwner,)
+    serializer_class = SessionCreateSerializer
+
+    def post(self, request, *args, **kwargs):
+        cinema_id = kwargs.pop('cinema_id')
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data.update({
+            'cinema_id': cinema_id
+        })
+        instance = serializer.save()
+        tickets = []
+        for seat in Seat.objects.filter(cinema_id=cinema_id):
+            new_ticket = Ticket()
+            new_ticket.session = instance
+            new_ticket.seat = seat
+            tickets.append(new_ticket)
+        Ticket.create_bulk_tickets(tickets)
+        return Response({'message': 'The Session and Related Tickets are created!',
+                         'data': serializer.data}, status=status.HTTP_201_CREATED)
+
+
 class GenerateSeatsView(APIView):
     permission_classes = (IsCinemaOwner,)
 
@@ -87,9 +105,7 @@ class GenerateSeatsView(APIView):
             'cinema_id': cinema_id
         }
         generate_seat_serializer = GenerateSeatsSerializer(data=data)
-        # print('1 ===========> ', generate_seat_serializer.validated_data)
         if generate_seat_serializer.is_valid():
-            print('2 ===========> ', generate_seat_serializer.validated_data)
             style = generate_seat_serializer.validated_data.get('style')
             cinema_id = generate_seat_serializer.validated_data.get('cinema_id')
             for i, row in enumerate(style):

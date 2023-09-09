@@ -58,10 +58,21 @@ class CinemaListSerializer(serializers.ModelSerializer):
 
 
 class SessionsListSerializer(serializers.ModelSerializer):
+    movie = MovieCreateSerializer()
+    cinema = CinemaListSerializer()
     class Meta:
         model = CinemaSession
         fields = (
-            'cinema', 'movie', 'date', 'time'
+            'movie', 'date', 'time', 'translation', 'description'
+        )
+
+
+class SessionCreateSerializer(serializers.ModelSerializer):
+    # todo: add validators for time and date to prevent adding session in the past
+    class Meta:
+        model = CinemaSession
+        fields = (
+            'movie', 'date', 'time', 'translation', 'description'
         )
 
 

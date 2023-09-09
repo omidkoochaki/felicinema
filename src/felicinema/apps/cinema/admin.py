@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from felicinema.apps.cinema.models import Seat, Cinema, Movie
+from felicinema.apps.cinema.models import Seat, Cinema, Movie, Ticket, CinemaSession
 
 admin.site.register(Cinema)
 
@@ -13,3 +13,13 @@ class SeatAdmin(admin.ModelAdmin):
 @admin.register(Movie)
 class SeatAdmin(admin.ModelAdmin):
     list_display = ['title', 'genre', 'duration', 'summary']
+
+
+@admin.register(Ticket)
+class SeatAdmin(admin.ModelAdmin):
+    list_display = ['session', 'seat', 'state']
+
+
+@admin.register(CinemaSession)
+class SeatAdmin(admin.ModelAdmin):
+    list_display = ['cinema', 'movie', 'date', 'time']

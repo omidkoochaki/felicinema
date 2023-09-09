@@ -1,7 +1,7 @@
 import random
 
 import jdatetime
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 
 from felicinema.apps.accounts.models import User
@@ -44,8 +44,8 @@ class SessionManager(models.Manager):
         return self.filter(movie_title__contains=movie_name, cinema_address__contains=address)
 
     def get_cinema_future_sessions(self, cinema_id):
-        q = Q(cinema_id=cinema_id) & Q(date__gte=jdatetime.datetime.now().date().isoformat()) & \
-            Q(time__gte=jdatetime.datetime.now().time().isoformat())
+        q = Q(cinema_id=cinema_id) & (Q(date__gte=jdatetime.datetime.now().date().isoformat()) |
+                                      Q(time__gte=jdatetime.datetime.now().time().isoformat()))
         return self.filter(q)
 
 
@@ -57,14 +57,17 @@ class CinemaSession(models.Model):
         PERSIAN_VOICE = 'PV', 'Persian Voice'
         ENGLISH_VOICE = 'EV', 'English Voice'
         OTHER_VOICE = 'OV', 'Other Voice'
-    cinema = models.OneToOneField(Cinema, on_delete=models.CASCADE, related_name='sessions')
-    movie = models.OneToOneField(Movie, on_delete=models.CASCADE, related_name='sessions')
+    cinema = models.ForeignKey(Cinema, on_delete=models.CASCADE, related_name='sessions')
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='sessions')
     date = models.DateField()
     time = models.TimeField()
     translation = models.CharField(max_length=2, choices=Translations.choices, default=Translations.PERSIAN_SUBTITLE)
     description = models.TextField(null=True, blank=True)
 
     objects = SessionManager()
+
+    def __str__(self):
+        return ' - '.join([self.movie.title, self.cinema.title])
 
 
 class Seat(models.Model):
@@ -76,6 +79,9 @@ class Seat(models.Model):
     class Meta:
         unique_together = ('seat', 'row', 'cinema')
 
+    def __str__(self):
+        return f"row: {self.row}, seat: {self.seat}"
+
 
 class Ticket(models.Model):
     class RESERVATION(models.TextChoices):
@@ -83,13 +89,20 @@ class Ticket(models.Model):
         RESERVING = 'R', 'Reserving'
         FREE = 'F', 'FREE'
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  # the user who wants to see movie
-    session = models.ForeignKey(CinemaSession, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)
+    # the user who wants to see movie
+    session = models.ForeignKey(CinemaSession, on_delete=models.CASCADE, related_name='tickets')
     seat = models.ForeignKey(Seat, on_delete=models.PROTECT)
     state = models.CharField(max_length=1, choices=RESERVATION.choices, default=RESERVATION.FREE)
 
     class Meta:
         unique_together = ('seat', 'session',)
+
+    @classmethod
+    @transaction.atomic
+    def create_bulk_tickets(cls, ticket_list: list):
+        for ticket in ticket_list:
+            ticket.save()
 
     @property
     def is_free(self):
