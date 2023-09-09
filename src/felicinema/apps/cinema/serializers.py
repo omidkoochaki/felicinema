@@ -2,14 +2,14 @@ from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 
 from felicinema.apps.accounts.models import User
-from felicinema.apps.cinema.models import Cinema, CinemaSession, Movie, Seat
+from felicinema.apps.cinema.models import Cinema, CinemaSession, Movie, Seat, Ticket, Payment
 
 
 class ShowSeatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Seat
         fields = (
-            'row', 'seat', 'wheelchair_friendly',
+            'id', 'row', 'seat', 'wheelchair_friendly',
         )
 
 
@@ -57,13 +57,70 @@ class CinemaListSerializer(serializers.ModelSerializer):
         )
 
 
+class CinemaListForSessionSerializer(serializers.ModelSerializer):
+    owner = UserSerializer(source='user')
+
+    class Meta:
+        model = Cinema
+        fields = (
+            'id', 'title', 'address', 'owner',
+        )
+
+
+class TicketReserveSerializer(serializers.Serializer):
+    seat_id = serializers.IntegerField(min_value=0)
+    cinema_id = serializers.IntegerField(min_value=0)
+    session_id = serializers.IntegerField(min_value=0)
+
+
+class TicketSerializer(serializers.ModelSerializer):
+    seat = ShowSeatsSerializer()
+
+    class Meta:
+        model = Ticket
+        fields = ('session', 'seat', 'state')
+
+
+class PaymentDetailSerializer(serializers.ModelSerializer):
+    ticket = TicketSerializer()
+
+    class Meta:
+        model = Payment
+        fields = ('ticket', 'is_paid')
+
+
+class PaymentAcceptSerializer(serializers.Serializer):
+    code = serializers.IntegerField(min_value=0)
+    is_paid = serializers.BooleanField(required=True)
+
+    def is_valid(self, *, raise_exception=True):
+        return super().is_valid(raise_exception=raise_exception)
+
+    def validate_code(self, code):
+        if int(code) == int(self.instance.code):
+            return code
+        raise serializers.ValidationError("code is not acceptable")
+
+    def validate_is_paid(self, is_paid):
+        if type(is_paid) == bool:
+            return is_paid
+        raise serializers.ValidationError("is_paid")
+
+    def update(self, instance, validated_data):
+        instance.is_paid = validated_data.get('is_paid')
+        instance.save()
+        return instance
+
+
 class SessionsListSerializer(serializers.ModelSerializer):
     movie = MovieCreateSerializer()
-    cinema = CinemaListSerializer()
+    cinema = CinemaListForSessionSerializer()
+    tickets = TicketSerializer(many=True)
+
     class Meta:
         model = CinemaSession
         fields = (
-            'movie', 'date', 'time', 'translation', 'description', 'cinema', 'tickets'
+            'id', 'movie', 'date', 'time', 'translation', 'description', 'cinema', 'tickets'
         )
 
 
@@ -85,7 +142,6 @@ class GenerateSeatsSerializer(serializers.Serializer):
 
     def validate_style(self, style):
         err_msg = "style should be like this: [[0,0,0,0], [0,0,0]]"
-        print(type(style))
         if type(style) is not list:
             raise serializers.ValidationError(err_msg)
         if style == []:
@@ -95,4 +151,3 @@ class GenerateSeatsSerializer(serializers.Serializer):
     def validate_cinema_id(self, cinema_id):
         cinema = get_object_or_404(Cinema, id=cinema_id)
         return cinema_id
-

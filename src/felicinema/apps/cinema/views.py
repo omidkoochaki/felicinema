@@ -1,13 +1,15 @@
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, RetrieveUpdateAPIView, \
+    get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from felicinema.apps.cinema.models import Cinema, CinemaSession, Seat, Movie, Ticket
+from felicinema.apps.cinema.models import Cinema, CinemaSession, Seat, Movie, Ticket, Payment
 from felicinema.apps.cinema.permissions import IsCinemaOwner, HasCinema
 from felicinema.apps.cinema.serializers import CinemaCreateSerializer, CinemaListSerializer, SessionsListSerializer, \
-    GenerateSeatsSerializer, MovieCreateSerializer, SessionCreateSerializer
+    GenerateSeatsSerializer, MovieCreateSerializer, SessionCreateSerializer, TicketReserveSerializer, \
+    PaymentAcceptSerializer, PaymentDetailSerializer
 
 
 class CreateCinemaView(CreateAPIView):
@@ -97,6 +99,58 @@ class CreateSessionsView(CreateAPIView):
         Ticket.create_bulk_tickets(tickets)
         return Response({'message': 'The Session and Related Tickets are created!',
                          'data': serializer.data}, status=status.HTTP_201_CREATED)
+
+
+class CreateReservationView(CreateAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        cinema_id = kwargs.pop('cinema_id')
+        session_id = kwargs.pop('session_id')
+        data = {
+            **request.data,
+            'cinema_id': cinema_id,
+            'session_id': session_id,
+        }
+        serializer = TicketReserveSerializer(data=data)
+        if serializer.is_valid(raise_exception=True):
+            try:
+                ticket = Ticket.objects.get(
+                    session_id=serializer.validated_data.get('session_id'),
+                    seat_id=serializer.validated_data.get('seat_id')
+                )
+                ticket.reserve(seat_id=serializer.validated_data.get('seat_id'), user=request.user)
+                return Response(
+                    {'messsage': 'reservation is started, we will send you an email if host accepts your reservation'},
+                    status=status.HTTP_200_OK
+                )
+            except Exception as e:
+                return Response({'messsage': str(e)}, status=status.HTTP_403_FORBIDDEN)
+
+
+class AcceptReservationView(APIView):
+    permission_classes = (HasCinema,)
+
+    def get(self, request, pid):
+        payment = get_object_or_404(Payment, id=pid)
+        car_serializer = PaymentDetailSerializer(instance=payment)
+        data = car_serializer.data
+        return Response({'payment': data})
+
+    def put(self, request, pid):
+        payment = get_object_or_404(Payment, id=pid)
+        payment_serializer = PaymentAcceptSerializer(
+            instance=payment,
+            data=request.data,
+            partial=True
+        )
+
+        if payment_serializer.is_valid():
+            payment_serializer.save()
+            # todo: add a signal here to update Ticket state to FREE or OCCUPIED
+            return Response({'message': 'Reservation Updated successfully!'})
+
+        return Response({'message': payment_serializer.errors})
 
 
 class GenerateSeatsView(APIView):

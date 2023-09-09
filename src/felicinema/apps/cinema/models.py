@@ -1,4 +1,5 @@
 import random
+import uuid
 
 import jdatetime
 from django.db import models, transaction
@@ -38,6 +39,9 @@ class Movie(models.Model):
     summary = models.TextField()
     # todo: add poster
 
+    def __str__(self):
+        return self.title
+
 
 class SessionManager(models.Manager):
     def get_movies(self, movie_name: str = None, address: str = None):
@@ -71,6 +75,12 @@ class CinemaSession(models.Model):
 
     def __str__(self):
         return ' - '.join([self.movie.title, self.cinema.title])
+
+
+class CinemaAutoAcceptList(models.Model):
+    # todo: add auto accept feature
+    cinema = models.ForeignKey(Cinema, on_delete=models.CASCADE, related_name='auto_accept')
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
 class Seat(models.Model):
@@ -125,17 +135,18 @@ class Ticket(models.Model):
             return True
         return False
 
-    def reserve(self, seat: Seat, user: User) -> str:
+    def reserve(self, seat_id: int, user: User) -> str:
         if self.is_free:
             self.state = Ticket.RESERVATION.RESERVING
-            self.seat = seat
+            self.seat_id = seat_id
             self.user = user
-            ticket = self.save()
+            self.save()
+            # todo: do making payment with signals
             payment = Payment()
-            payment.make_payment(ticket)
+            payment.make_payment(self)
             return self.state
         elif self.is_reserving:
-            if self.user == user and self.seat == seat:
+            if self.user == user and self.seat_id == seat_id:
                 if hasattr(self, 'payment'):
                     if self.payment.is_paid:
                         self.state = Ticket.RESERVATION.OCCUPIED
@@ -144,7 +155,7 @@ class Ticket(models.Model):
                     else:
                         raise Exception("Payment is not done.")
                 raise Exception("No Payment Found --- Probably Facing a BUG")
-            raise Exception("Seat is probably reserving by another user")
+            raise Exception("Seat is under reserving by another user")
         elif self.is_occupied:
             raise Exception("Seat is reserved before")
         else:
@@ -152,7 +163,8 @@ class Ticket(models.Model):
 
 
 class Payment(models.Model):
-    ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE, related_name='payment')
     code = models.CharField(max_length=8)
     is_paid = models.BooleanField(default=False)
 
@@ -160,14 +172,14 @@ class Payment(models.Model):
         pass
 
     def send_email_to_cinema_owner(self):
-        owner = self.ticket.session.cinema.user
-        code = self.code
-        user = self.ticket.user
-        # create a celery task and call it here to send email
+        from felicinema.helpers.emailing import Mailer
+        # todo: create a celery task and call it here to send email
+        m = Mailer()
+        m.send_reserve_request_info(self)
         pass
 
     def make_payment(self, ticket):
-        self.ticket = ticket
+        self.ticket_id = ticket.id
         self.code = random.randint(100000, 999999)
         self.is_paid = False
         self.save()
