@@ -66,6 +66,9 @@ class CinemaSession(models.Model):
 
     objects = SessionManager()
 
+    class Meta:
+        unique_together = ('cinema', 'movie', 'date', 'time')
+
     def __str__(self):
         return ' - '.join([self.movie.title, self.cinema.title])
 

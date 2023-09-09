@@ -63,7 +63,7 @@ class SessionsListSerializer(serializers.ModelSerializer):
     class Meta:
         model = CinemaSession
         fields = (
-            'movie', 'date', 'time', 'translation', 'description'
+            'movie', 'date', 'time', 'translation', 'description', 'cinema', 'tickets'
         )
 
 

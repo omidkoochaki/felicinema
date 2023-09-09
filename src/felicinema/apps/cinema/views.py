@@ -84,7 +84,10 @@ class CreateSessionsView(CreateAPIView):
         serializer.validated_data.update({
             'cinema_id': cinema_id
         })
-        instance = serializer.save()
+        try:
+            instance = serializer.save()
+        except Exception as e:
+            return Response({'messsage': str(e)}, status=status.HTTP_403_FORBIDDEN)
         tickets = []
         for seat in Seat.objects.filter(cinema_id=cinema_id):
             new_ticket = Ticket()
