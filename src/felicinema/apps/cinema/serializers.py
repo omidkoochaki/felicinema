@@ -25,7 +25,7 @@ class MovieCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = (
-            'title', 'genre', 'duration', 'summary',
+            'title', 'genre', 'duration', 'summary', 'language',
         )
 
     def is_valid(self, *, raise_exception=True):
@@ -42,7 +42,7 @@ class CinemaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cinema
         fields = (
-            'title', 'address', 'language', 'duration', 'summary'
+            'title', 'address',
         )
 
 
