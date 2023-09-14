@@ -133,8 +133,8 @@ class AcceptReservationView(APIView):
 
     def get(self, request, pid):
         payment = get_object_or_404(Payment, id=pid)
-        car_serializer = PaymentDetailSerializer(instance=payment)
-        data = car_serializer.data
+        payment_serializer = PaymentDetailSerializer(instance=payment)
+        data = payment_serializer.data
         return Response({'payment': data})
 
     def put(self, request, pid):
@@ -146,7 +146,7 @@ class AcceptReservationView(APIView):
         )
 
         if payment_serializer.is_valid():
-            payment_serializer.save()
+            payment.accept_payment(payment_serializer.validated_data.get('code'))
             # todo: add a signal here to update Ticket state to FREE or OCCUPIED
             return Response({'message': 'Reservation Updated successfully!'})
 

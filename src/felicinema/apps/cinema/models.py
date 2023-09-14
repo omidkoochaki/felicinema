@@ -37,6 +37,7 @@ class Movie(models.Model):
     language = models.CharField(max_length=2, choices=Language.choices, default=Language.ENGLISH)
     duration = models.DurationField()
     summary = models.TextField()
+
     # todo: add poster
 
     def __str__(self):
@@ -61,6 +62,7 @@ class CinemaSession(models.Model):
         PERSIAN_VOICE = 'PV', 'Persian Voice'
         ENGLISH_VOICE = 'EV', 'English Voice'
         OTHER_VOICE = 'OV', 'Other Voice'
+
     cinema = models.ForeignKey(Cinema, on_delete=models.CASCADE, related_name='sessions')
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE, related_name='sessions')
     date = models.DateField()
@@ -163,20 +165,23 @@ class Ticket(models.Model):
 
 
 class Payment(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     ticket = models.OneToOneField(Ticket, on_delete=models.CASCADE, related_name='payment')
     code = models.CharField(max_length=8)
     is_paid = models.BooleanField(default=False)
 
     def send_email_to_user(self):
-        pass
+        from felicinema.helpers.emailing import Mailer
+        # todo: create a celery task and call it here to send email
+        m = Mailer()
+        if self.is_paid:
+            m.send_reservation_accept_to_reservant(self)
 
     def send_email_to_cinema_owner(self):
         from felicinema.helpers.emailing import Mailer
         # todo: create a celery task and call it here to send email
         m = Mailer()
         m.send_reserve_request_info(self)
-        pass
 
     def make_payment(self, ticket):
         self.ticket_id = ticket.id
@@ -185,9 +190,11 @@ class Payment(models.Model):
         self.save()
         self.send_email_to_cinema_owner()
 
-    def check_payment(self, code):
-        if self.code == code:
+    def accept_payment(self, code):
+        if int(self.code) == int(code):
             self.is_paid = True
+            self.ticket.state = Ticket.RESERVATION.OCCUPIED
+            self.ticket.save()
             self.save()
             return True
         return False

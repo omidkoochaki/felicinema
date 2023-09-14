@@ -6,6 +6,23 @@ class Mailer:
     from felicinema.apps.cinema.models import Payment
 
     @staticmethod
+    def send_reservation_accept_to_reservant(payment: Payment):
+        subject = 'Reservation Result Report from Felicinema'
+        message = f"Hello {payment.ticket.user} \n" \
+                  f"Your reservation request for:\n" \
+                  f'date: {payment.ticket.session.date} \n' \
+                  f'time: {payment.ticket.session.time} \n' \
+                  f'movie: {payment.ticket.session.movie} \n' \
+                  f'has been ACCEPTED by: {payment.ticket.session.cinema.user} \n' \
+                  f'Enjoy the event!' \
+                  f'\n' \
+                  f'Regards, \n' \
+                  f'Omid from FeliCinema'
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [payment.ticket.session.cinema.user.email, ]
+        send_mail(subject, message, email_from, recipient_list)
+
+    @staticmethod
     def send_reserve_request_info(payment: Payment):
         subject = 'Reservation Request from Felicinema'
         message = f'Hi {payment.ticket.session.cinema.user},\n' \

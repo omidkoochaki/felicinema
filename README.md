@@ -5,7 +5,7 @@ FeliCinema is a platform for those who love watching movies with other people an
 
 People who have a house and a machine to show movies with it, can add Cinema to the platform. Define Cinema Sessions and how many people they can host in their private cinema. Also they can specify the settings of seats in their cinema and there is an option to check if the seat is wheelchair-friendly or not for every single seat.
 
-Other people can search for cinemas, movies or cinema sessions and choose to make a reservation, the cinema owner will received an email and a accept-reservation link with security code to accept/reject reservants. Once the reservation request accepted by the Cinema Owner, reservant will be informed through the email.
+Other people can search for cinemas, movies or cinema sessions and choose to make a reservation, the cinema owner will receive an email and aد accept-reservation link with security code to accept/reject reservants. Once the reservation request accepted by the Cinema Owner, reservant will be informed through the email.
 
 Also, the Cinema Owner has a dashboard to see all reservations and accept/reject them without the need for a security code. Once the Cinema Owner accepts a reservation can add the reservant to his/her auto-accept reservation list.
 
@@ -139,16 +139,16 @@ When a reservant is in auto accept reservation list of one cinema owner, system 
 To run tests, run the following command
 
 ```bash
-  django
+  still not implemented
 ```
 
 
 ## Deployment
 
-To deploy this project run
+To run project on your machine:
 
 ```bash
-  docker
+  make build
 ```
 
 
