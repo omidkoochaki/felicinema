@@ -50,42 +50,43 @@ services:
         networks:
             - felicinema-live
 
-#    celery_worker:
-#        build:
-#            context: .
-#            dockerfile: ./docker/local/django/Dockerfile
-#        command: /start-celeryworker
-#        container_name: celery_worker
-#        volumes:
-#            - ./src:/app
-#        env_file:
-#            - ./.envs/.local/.django
-#            - ./.envs/.local/.postgres
-#        depends_on:
-#            - redis
-#            - postgres
-#            - mailhog
-#        networks:
-#            - felicinema-live
-#
-#    flower:
-#        build:
-#            context: .
-#            dockerfile: ./docker/local/django/Dockerfile
-#        command: /start-flower
-#        container_name: flower
-#        volumes:
-#            - ./src:/app
-#        env_file:
-#            - ./.envs/.local/.django
-#            - ./.envs/.local/.postgres
-#        ports:
-#            - "5555:5555"
-#        depends_on:
-#            - redis
-#            - postgres
-#        networks:
-#            - felicinema-live
+    celery_worker:
+        build:
+            context: .
+            dockerfile: ./docker/local/django/Dockerfile
+        command: /start-celeryworker
+#        command: ./docker/local/django/celery/worker/start
+        container_name: celery_worker
+        volumes:
+            - ./src:/app
+        env_file:
+            - ./.envs/.local/.django
+            - ./.envs/.local/.postgres
+        depends_on:
+            - redis
+            - postgres
+            - mailhog
+        networks:
+            - felicinema-live
+
+    flower:
+        build:
+            context: .
+            dockerfile: ./docker/local/django/Dockerfile
+        command: /start-flower
+        container_name: flower
+        volumes:
+            - ./src:/app
+        env_file:
+            - ./.envs/.local/.django
+            - ./.envs/.local/.postgres
+        ports:
+            - "5555:5555"
+        depends_on:
+            - redis
+            - postgres
+        networks:
+            - felicinema-live
 
     nginx:
         restart: always

@@ -3,4 +3,4 @@
 set -o errexit
 set -o nounset
 
-watchmedo auto-restart -d authors_api/ -p '*.py' -- celery -A authors_api worker --loglevel=info
+watchmedo auto-restart -d felicinema/ -p '*.py' -- celery -A felicinema worker --loglevel=info
