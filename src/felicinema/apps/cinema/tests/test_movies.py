@@ -1,12 +1,27 @@
+import random
+
 from django.test import TestCase, RequestFactory
 from rest_framework import status
 from rest_framework.test import APIClient
 
 from felicinema.apps.accounts.models import User
-from felicinema.apps.cinema.models import Cinema
+from felicinema.apps.cinema.models import Cinema, Movie
 
 
 class MovieTests(TestCase):
+
+    @staticmethod
+    def create_movie(number=1, genre='fiction'):
+        movies = []
+        for i in range(number):
+            movies.append(Movie.objects.create(
+                title=f"movie {i} title",
+                genre=genre,
+                duration=f'2:{random.randint(10, 59)}:{random.randint(10, 59)}',
+                summary=f'summary for movie {i}',
+                language=random.choice(Movie.Language.choices)[0]
+            ))
+        return movies
 
     @staticmethod
     def create_cinema(user: User):
@@ -21,12 +36,23 @@ class MovieTests(TestCase):
         users = []
         for i in range(number):
             users.append(User.objects.create_user(
-                username=f'test-user-{i+300}',
+                username=f'test-user-{i + 300}',
                 password='pass',
                 email=f'user{i}@test.com',
                 birth_year=1368
             ))
         return users
+
+    def test_authorized_users_can_see_movies_list(self):
+        client = APIClient()
+        user = self.create_user()[0]
+        movies = self.create_movie(5)
+        resp = client.get('/api/v1/cinema/movie/all/', follow=True)
+        self.assertEqual(resp.status_code, status.HTTP_401_UNAUTHORIZED)
+        client.force_authenticate(user=user)
+        resp = client.get('/api/v1/cinema/movie/all/', follow=True)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(resp.json()), 5)
 
     def test_only_cinema_owners_can_add_movies(self):
 
@@ -48,5 +74,3 @@ class MovieTests(TestCase):
         client.force_authenticate(user=user1)
         response = client.post('/api/v1/cinema/movie/add/', movie_data, format='json', follow=True)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-
