@@ -17,44 +17,29 @@ import environ
 
 env = environ.Env()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+APPS_DIR = BASE_DIR / "apps"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p#h45&92z_r=#*$cnfnxkp8e&bi2qv$1ih%rb752#6fms^54qw'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = [
-    'localhost',
-]
-
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8080']
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_USE_TLS = True
-EMAIL_PORT = 587
-EMAIL_HOST_USER = "info.felicinema@gmail.com"
-EMAIL_HOST_PASSWORD = "omgbgorzodjatzyb"
+DDEBUG = env.bool("DJANGO_DEBUG", False)
 
 # Custom User Model
 AUTH_USER_MODEL = 'accounts.User'
 
-
 # Application definition
 
 DJANGO_DEFAULT_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    "django.contrib.sites",
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.admin',
 ]
 
 THIRD_PARTY_APPS = [
@@ -73,11 +58,12 @@ INSTALLED_APPS = DJANGO_DEFAULT_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.common.BrokenLinkEmailsMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -101,7 +87,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'felicinema.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -115,13 +100,44 @@ WSGI_APPLICATION = 'felicinema.wsgi.application'
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher'
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher'
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher'
+]
+
+LANGUAGE_CODE = "en-Us"
+TIME_ZONE = "Africa/Kigali"
+USE_I18N = True
+USE_L1ON = True
+USE_TZ = True
+
+ADMIN_URL = "supersecret/"
+ADMINS = [(''"'Omid Koochaki""", "omid.koochaki@gmail.com")]
+MANAGERS = ADMINS
+
+STATIC_URL = "/staticfiles/"
+STATIC_ROOT = str(BASE_DIR / "staticfiles")
+STATICFILES_DIRS = []
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+]
+
+MEDIA_URL = "/mediafiles/"
+MEDIA_ROOT = str(BASE_DIR / "mediafiles")
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+CORS_URLS_REGEX = r"^/api/.*$"
+
 CELERY_BROKER_URL = env("CELERY_BROKER")
 CELERY_RESULT_BACKEND = env("CELERY_BACKEND")
 CELERY_TIMEZONE = "Africa/Kigali"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -141,42 +157,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_URL = "/staticfiles/"
-STATIC_ROOT = str(BASE_DIR / "staticfiles")
-
-STATICFILES_DIRS = []
-STATICFILES_FINDERS = [
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-]
-
-MEDIA_URL = "/mediafiles/"
-MEDIA_ROOT = str(BASE_DIR / "mediafiles")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
     ],
 }
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
