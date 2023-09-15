@@ -44,7 +44,7 @@ class User(AbstractUser):
         return year - int(self.birth_year)
 
     @property
-    def is_cinema_owner(self):
+    def has_cinema(self):
         return hasattr(self, 'cinema')
 
     def __str__(self):

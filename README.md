@@ -15,7 +15,7 @@ When a reservant is in auto accept reservation list of one cinema owner, system 
 ### Cinema
 #### Add Cinema
 ```http
-  POST /cinema/add
+  POST api/v1/cinema/add
 ```
 - User must be Authenticated
 
@@ -27,7 +27,7 @@ When a reservant is in auto accept reservation list of one cinema owner, system 
 
 #### Add Cinema Seats
 ```http
-  POST /cinema/add/<int:cinema_id>/seats/
+  POST api/v1/cinema/add/<int:cinema_id>/seats/
 ```
 - User must be cinema owner
 - each list in main list stands for a seat row
@@ -40,14 +40,14 @@ When a reservant is in auto accept reservation list of one cinema owner, system 
 
 #### See Cinema List and Search
 ```http
-  GET /cinema/all/?tile='',address=''
+  GET api/v1/cinema/all/?tile='',address=''
 ```
 - User must be Authenticated
 - query params are optional
 
 #### See One Cinema
 ```http
-  GET /cinema/cinema_id/
+  GET api/v1/cinema/cinema_id/
 ```
 - User must be Authenticated
 
@@ -55,7 +55,7 @@ When a reservant is in auto accept reservation list of one cinema owner, system 
 ### Movie
 #### Add New Movie
 ```http
-  POST /cinema/movie/add/
+  POST api/v1/cinema/movie/add/
 ```
 - User must have a Cinema
 
@@ -69,17 +69,17 @@ When a reservant is in auto accept reservation list of one cinema owner, system 
 
 #### See Movie List and Details
 ```http
-  details: GET /cinema/movie/movie_id/
+  details: GET api/v1/cinema/movie/movie_id/
 ```
 ```http
-  list: GET /cinema/movie/all/
+  list: GET api/v1/cinema/movie/all/
 ```
 - User must be authenticated
 
 ### Sessions
 #### Add Cinema Session
 ```http
-  POST /cinema/cinema_id/sessions/add/
+  POST api/v1/cinema/cinema_id/sessions/add/
 ```
 - User must be cinema owner
 
@@ -99,14 +99,14 @@ When a reservant is in auto accept reservation list of one cinema owner, system 
 
 #### See Sessions List
 ```http
-  GET /cinema/cinema_id/sessions/
+  GET api/v1/cinema/cinema_id/sessions/
 ```
 - User must be Authenticated
 - just shows sessions for future from right now
 
 #### Reserve a session
 ```http
-  POST /cinema/cinema_id/sessions/session_id/reserve
+  POST api/v1/cinema/cinema_id/sessions/session_id/reserve
 ```
 - User must be Authenticated
 
@@ -118,14 +118,14 @@ When a reservant is in auto accept reservation list of one cinema owner, system 
 ### Reservation
 #### Get Reservation Info to Accept or Reject with Security Key
 ```http
-  GET /cinema/reservation/uuid/
+  GET api/v1/cinema/reservation/uuid/
 ```
 - User must has a cinema
 - returns {'payment': payment_data}
 
 #### Accept or Reject with Security Key
 ```http
-  POST /cinema/reservation/uuid/
+  POST api/v1/cinema/reservation/uuid/
 ```
 - User must have a cinema
 

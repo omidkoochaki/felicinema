@@ -2,7 +2,7 @@ from .base import *
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p#h45&92z_r=#*$cnfnxkp8e&bi2qv$1ih%rb752#6fms^54qw'
+SECRET_KEY = os.getenv('SECRET_KEY', "ABC34KJ!OmAYG0DABC34KJ!OmAYG0DABC34KJ!OmAYG0DABC34KJ!OmAYG0D")
 ALLOWED_HOSTS = [
     'localhost',
 ]

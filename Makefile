@@ -1,3 +1,9 @@
+test:
+	docker-compose -f local.yml run --rm api sh -c "python manage.py test"
+
+test-flake:
+	docker-compose -f local.yml run --rm api sh -c "python manage.py test && flake8"
+
 build:
 	docker compose -f local.yml up --build -d --remove-orphans
 
@@ -6,6 +12,9 @@ up:
 
 down:
 	docker compose -f local.yml down
+
+down-v:
+	docker compose -f local.yml down -v
 
 show_logs:
 	docker compose -f local.yml logs
@@ -21,9 +30,6 @@ collectstatic:
 
 superuser:
 	docker compose -f local.yml run --rm api python3 manage.py createsuperuser
-
-down-v:
-	docker compose -f local.yml down -v
 
 volume:
 	docker volume inspect authors-src_local_postgres_data

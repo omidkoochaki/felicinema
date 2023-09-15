@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -48,12 +48,12 @@ THIRD_PARTY_APPS = [
     'corsheaders',
 ]
 
-LOCAL_APPS = [
+DEVELOPED_APPS = [
     'felicinema.apps.accounts',
     'felicinema.apps.cinema',
 ]
 
-INSTALLED_APPS = DJANGO_DEFAULT_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = DJANGO_DEFAULT_APPS + THIRD_PARTY_APPS + DEVELOPED_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -97,14 +97,25 @@ WSGI_APPLICATION = 'felicinema.wsgi.application'
 #     }
 # }
 
-DATABASES = {"default": env.db("DATABASE_URL")}
+# DATABASES = {"default": env.db("DATABASE_URL")}
+# DATABASES = {"default": env.db(os.getenv("DATABASE_URL"))}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.getenv("POSTGRES_DB"),
+        'USER': os.getenv("POSTGRES_USER"),
+        'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
+        'HOST': os.getenv("POSTGRES_HOST"),
+        'PORT': os.getenv("POSTGRES_PORT"),
+    }
+}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 
 PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.Argon2PasswordHasher'
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
-    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher'
-    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher'
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
 ]
 
 LANGUAGE_CODE = "en-Us"
