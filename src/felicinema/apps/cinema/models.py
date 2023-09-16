@@ -22,6 +22,10 @@ class Cinema(models.Model):
 
     objects = CinemaManager()
 
+    @property
+    def has_seats(self):
+        return hasattr(self, 'seats')
+
     def __str__(self):
         return self.title
 
@@ -175,13 +179,13 @@ class Payment(models.Model):
         # todo: create a celery task and call it here to send email
         m = Mailer()
         if self.is_paid:
-            m.send_reservation_accept_to_reservant(self)
+            m.send_reservation_accept_to_reservant.delay(self)
 
     def send_email_to_cinema_owner(self):
         from felicinema.helpers.emailing import Mailer
         # todo: create a celery task and call it here to send email
         m = Mailer()
-        m.send_reserve_request_info(self)
+        m.send_reserve_request_info.delay(self)
 
     def make_payment(self, ticket):
         self.ticket_id = ticket.id

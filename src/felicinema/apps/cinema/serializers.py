@@ -42,7 +42,7 @@ class CinemaCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cinema
         fields = (
-            'title', 'address',
+            'id', 'title', 'address',
         )
 
 

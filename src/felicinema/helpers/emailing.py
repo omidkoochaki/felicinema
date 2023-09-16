@@ -1,3 +1,4 @@
+from celery import shared_task
 from django.conf import settings
 from django.core.mail import send_mail, EmailMessage
 
@@ -6,6 +7,7 @@ class Mailer:
     from felicinema.apps.cinema.models import Payment
 
     @staticmethod
+    @shared_task(bind=True)
     def send_reservation_accept_to_reservant(payment: Payment):
         subject = 'Reservation Result Report from Felicinema'
         message = f"Hello {payment.ticket.user} \n" \
@@ -23,6 +25,7 @@ class Mailer:
         send_mail(subject, message, email_from, recipient_list)
 
     @staticmethod
+    @shared_task(bind=True)
     def send_reserve_request_info(payment: Payment):
         subject = 'Reservation Request from Felicinema'
         message = f'Hi {payment.ticket.session.cinema.user},\n' \

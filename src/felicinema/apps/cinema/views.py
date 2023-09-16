@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from felicinema.apps.cinema.models import Cinema, CinemaSession, Seat, Movie, Ticket, Payment
-from felicinema.apps.cinema.permissions import IsCinemaOwner, HasCinema
+from felicinema.apps.cinema.permissions import IsCinemaOwner, HasCinema, CinemaHasNotSeats
 from felicinema.apps.cinema.serializers import CinemaCreateSerializer, CinemaListSerializer, SessionsListSerializer, \
     GenerateSeatsSerializer, MovieCreateSerializer, SessionCreateSerializer, TicketReserveSerializer, \
     PaymentAcceptSerializer, PaymentDetailSerializer
@@ -154,7 +154,7 @@ class AcceptReservationView(APIView):
 
 
 class GenerateSeatsView(APIView):
-    permission_classes = (IsCinemaOwner,)
+    permission_classes = (CinemaHasNotSeats,)
 
     def post(self, request, cinema_id):
         data = {
