@@ -11,7 +11,7 @@ urlpatterns = [
     path('movie/add/', CreateMovieView.as_view()),
     path('movie/<movie_id>/', ListMovieView.as_view()),
     path('<int:cinema_id>/sessions/', ListSessionsView.as_view()),
-    path('<int:cinema_id>/sessions/<int:session_id>/reserve', CreateReservationView.as_view()),
+    path('<int:cinema_id>/sessions/<int:session_id>/reserve/', CreateReservationView.as_view()),
     path('<int:cinema_id>/sessions/add/', CreateSessionsView.as_view()),
     path('reservation/<uuid:pid>/', AcceptReservationView.as_view(),)  # send is_paid = True/false for accept/reject
 ]

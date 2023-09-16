@@ -154,7 +154,7 @@ class AcceptReservationView(APIView):
 
 
 class GenerateSeatsView(APIView):
-    permission_classes = (CinemaHasNotSeats,)
+    permission_classes = (IsCinemaOwner,)
 
     def post(self, request, cinema_id):
         data = {

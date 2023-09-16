@@ -182,10 +182,19 @@ class Payment(models.Model):
             m.send_reservation_accept_to_reservant.delay(self)
 
     def send_email_to_cinema_owner(self):
-        from felicinema.helpers.emailing import Mailer
-        # todo: create a celery task and call it here to send email
-        m = Mailer()
-        m.send_reserve_request_info.delay(self)
+        from felicinema.helpers.emailing import send_reserve_request_info
+        cinema_owner = str(self.ticket.session.cinema.user)
+        date = self.ticket.session.date
+        time = self.ticket.session.time
+        movie = str(self.ticket.session.movie)
+        reservant = str(self.ticket.user)
+        code = self.code
+        payment_id = self.id
+        cinema_owner_email = self.ticket.session.cinema.user.email
+        send_reserve_request_info.delay(
+            cinema_owner, date, time, movie,
+            reservant, code, payment_id, cinema_owner_email
+        )
 
     def make_payment(self, ticket):
         self.ticket_id = ticket.id
@@ -202,3 +211,6 @@ class Payment(models.Model):
             self.save()
             return True
         return False
+
+    def dict(self):
+        return self.__dict__
