@@ -174,12 +174,19 @@ class Payment(models.Model):
     code = models.CharField(max_length=8)
     is_paid = models.BooleanField(default=False)
 
-    def send_email_to_user(self):
-        from felicinema.helpers.emailing import Mailer
-        # todo: create a celery task and call it here to send email
-        m = Mailer()
-        if self.is_paid:
-            m.send_reservation_accept_to_reservant.delay(self)
+    def send_email_to_reservant(self, accepted: bool):
+        from felicinema.helpers.emailing import send_reservation_result_to_reservant
+        if not self.is_paid:
+            reservant = str(self.ticket.user)
+            date = self.ticket.session.date
+            time = self.ticket.session.time
+            movie = str(self.ticket.session.movie)
+            cinema_owner = str(self.ticket.session.cinema.user)
+            reservant_email = self.ticket.user.email
+            accepted = accepted
+            send_reservation_result_to_reservant.delay(
+                reservant, date, time, movie, cinema_owner, reservant_email, accepted
+            )
 
     def send_email_to_cinema_owner(self):
         from felicinema.helpers.emailing import send_reserve_request_info
@@ -188,7 +195,7 @@ class Payment(models.Model):
         time = self.ticket.session.time
         movie = str(self.ticket.session.movie)
         reservant = str(self.ticket.user)
-        code = self.code
+        code = str(self.code)
         payment_id = self.id
         cinema_owner_email = self.ticket.session.cinema.user.email
         send_reserve_request_info.delay(
@@ -209,8 +216,18 @@ class Payment(models.Model):
             self.ticket.state = Ticket.RESERVATION.OCCUPIED
             self.ticket.save()
             self.save()
+            self.send_email_to_reservant(True)
             return True
         return False
 
-    def dict(self):
-        return self.__dict__
+    def reject_payment(self, code):
+        if int(self.code) == int(code):
+            self.send_email_to_reservant(False)
+            self.is_paid = False
+            self.ticket.state = Ticket.RESERVATION.FREE
+            self.ticket.user = None
+            self.ticket.save()
+            self.delete()
+            return True
+        return False
+

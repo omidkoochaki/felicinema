@@ -124,6 +124,7 @@ USE_I18N = True
 USE_L1ON = True
 USE_TZ = True
 
+SITE_ID = 1
 ADMIN_URL = "supersecret/"
 ADMINS = [(''"'Omid Koochaki""", "omid.koochaki@gmail.com")]
 MANAGERS = ADMINS

@@ -144,12 +144,19 @@ class AcceptReservationView(APIView):
             data=request.data,
             partial=True
         )
-
         if payment_serializer.is_valid():
-            payment.accept_payment(payment_serializer.validated_data.get('code'))
-            # todo: add a signal here to update Ticket state to FREE or OCCUPIED
-            return Response({'message': 'Reservation Updated successfully!'})
-
+            if payment_serializer.validated_data.get('is_paid'):
+                result = payment.accept_payment(payment_serializer.validated_data.get('code'))
+                if result:
+                    # todo: add a signal here to update Ticket state to FREE or OCCUPIED
+                    return Response({'message': 'Reservation Accepted successfully!'})
+                return Response({'message': 'Maybe the code is wrong!'})
+            else:
+                result = payment.reject_payment(payment_serializer.validated_data.get('code'))
+                if result:
+                    # todo: add a signal here to update Ticket state to FREE or OCCUPIED
+                    return Response({'message': 'Reservation Rejected successfully!'})
+                return Response({'message': 'Maybe the code is wrong!'})
         return Response({'message': payment_serializer.errors})
 
 

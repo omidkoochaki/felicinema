@@ -1,4 +1,3 @@
-from celery import shared_task
 from django.conf import settings
 from django.core.mail import send_mail
 from felicinema.celery import app as celery_app
@@ -25,56 +24,24 @@ def send_reserve_request_info(self, cinema_owner, date, time, movie, reservant, 
     send_mail(subject, message, email_from, recipient_list)
 
 
-class Mailer:
-    # from felicinema.apps.cinema.models import Payment
+@celery_app.task(bind=True, name="send_reservation_result_to_reservant")
+def send_reservation_result_to_reservant(self, reservant, date, time, movie, cinema_owner, reservant_email, accepted):
+    subject = 'Reservation Result Report from Felicinema'
+    print('=============================> 1')
+    message = f"Hello {reservant} \n" \
+              f"Your reservation request for:\n" \
+              f'date: {date} \n' \
+              f'time: {time} \n' \
+              f'movie: {movie} \n' \
+              f'has been {"Accepted" if accepted else "Rejected"} by: {cinema_owner} \n' \
+              f'{"Enjoy the event!" if accepted else "Try other events!"}' \
+              f'\n' \
+              f'Regards, \n' \
+              f'Omid from FeliCinema'
+    print('=============================> 2')
+    print(message)
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = [reservant_email, ]
+    send_mail(subject, message, email_from, recipient_list)
 
-    # @staticmethod
-    # def send_reservation_accept_to_reservant(payment: Payment):
-    #     subject = 'Reservation Result Report from Felicinema'
-    #     message = f"Hello {payment.ticket.user} \n" \
-    #               f"Your reservation request for:\n" \
-    #               f'date: {payment.ticket.session.date} \n' \
-    #               f'time: {payment.ticket.session.time} \n' \
-    #               f'movie: {payment.ticket.session.movie} \n' \
-    #               f'has been ACCEPTED by: {payment.ticket.session.cinema.user} \n' \
-    #               f'Enjoy the event!' \
-    #               f'\n' \
-    #               f'Regards, \n' \
-    #               f'Omid from FeliCinema'
-    #     email_from = settings.EMAIL_HOST_USER
-    #     recipient_list = [payment.ticket.session.cinema.user.email, ]
-    #     send_mail(subject, message, email_from, recipient_list)
 
-    @staticmethod
-    def send_reserve_request_info(payment: dict):
-        subject = 'Reservation Request from Felicinema'
-        # message = f'Hi {payment.ticket.session.cinema.user},\n' \
-        #           f' you have a reservation request for: \n' \
-        #           f'date: {payment.ticket.session.date} \n' \
-        #           f'time: {payment.ticket.session.time} \n' \
-        #           f'movie: {payment.ticket.session.movie} \n' \
-        #           f'from: {payment.ticket.user} \n' \
-        #           f'the security code for this reservation is: {payment.code}\n' \
-        #           f'\n' \
-        #           f'To accept the reservation please go to the link below and enter the security code: \n' \
-        #           f'cinema/reservation/{payment.id}/' \
-        #           f'Or you can check your dashboard and accept the requests you want. \n' \
-        #           f'Regards, \n' \
-        #           f'Omid from FeliCinema'
-        message = "hi"
-        email_from = settings.EMAIL_HOST_USER
-        recipient_list = [payment.ticket.user.email, ]
-        # email_body = """\
-        #     <html>
-        #       <head></head>
-        #       <body>
-        #         <h2>%s</h2>
-        #         <p>%s</p>
-        #         <h5>%s</h5>
-        #       </body>
-        #     </html>
-        #     """ % (payment.ticket.session.cinema.user, message.replace('\n', '<br>'), payment.ticket.user)
-        # email = EmailMessage('A new mail!', email_body, to=recipient_list)
-        # email.content_subtype = "html"
-        # email.send()
-        send_mail(subject, message, email_from, recipient_list)

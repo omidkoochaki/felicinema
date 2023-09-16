@@ -2,6 +2,9 @@ from .base import *
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
+
+DEBUG = True
+
 SECRET_KEY = os.getenv('SECRET_KEY', "ABC34KJ!OmAYG0DABC34KJ!OmAYG0DABC34KJ!OmAYG0DABC34KJ!OmAYG0D")
 ALLOWED_HOSTS = [
     'localhost',
